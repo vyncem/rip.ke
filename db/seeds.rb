@@ -7,3 +7,11 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
+
+%w[
+  vyklyte@gmail.com
+  vyncem@gmail.com
+  oliviamuia09@gmail.com
+  lindanmuia@gmail.com
+  nataliejeropbullut@gmail.com
+].each { |email| User.create_with(password: 'passapassa').find_or_create_by!(email: email) }

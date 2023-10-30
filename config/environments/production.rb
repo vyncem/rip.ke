@@ -96,4 +96,6 @@ Rails.application.configure do
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 
   config.action_mailer.default_url_options = { host: 'admin.rip.ke', port: 3000 }
+
+  Rails.application.routes.default_url_options[:host] = 'admin.rip.ke'
 end

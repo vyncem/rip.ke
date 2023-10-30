@@ -9,7 +9,7 @@ gem "rails", "~> 7.1.1"
 gem "sprockets-rails"
 
 # Use postgresql as the database for Active Record
-gem "pg", "~> 1.1"
+gem "sqlite3"
 
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
@@ -72,3 +72,10 @@ gem "devise", "~> 4.9"
 gem "omniauth-google-oauth2", "~> 1.1"
 
 gem "omniauth-rails_csrf_protection", "~> 1.0"
+
+gem "octokit", "~> 6.1"
+gem "mini_magick", "~> 4.12"
+
+gem "tailwindcss-rails", "~> 2.0"
+
+gem "faraday", "~> 2.7"

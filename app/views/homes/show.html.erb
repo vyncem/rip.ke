@@ -1,10 +1,8 @@
-<p style="color: green"><%= notice %></p>
-
 <%= render @home %>
 
 <div>
-  <%= link_to "Edit this home", edit_home_path(@home) %> |
-  <%= link_to "Back to homes", homes_path %>
+  <%= link_to "Edit this notice", edit_home_path(@home) %> |
+  <%= link_to "Back to notices", homes_path %>
   <%= @home.content %>
-  <%= button_to "Destroy this home", @home, method: :delete %>
+  <%= button_to "Destroy this notice", @home, method: :delete %>
 </div>

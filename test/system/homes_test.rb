@@ -7,33 +7,33 @@ class HomesTest < ApplicationSystemTestCase
 
   test "visiting the index" do
     visit homes_url
-    assert_selector "h1", text: "Homes"
+    assert_selector "h1", text: "Notices"
   end
 
-  test "should create home" do
+  test "should create notice" do
     visit homes_url
-    click_on "New home"
+    click_on "New notice"
 
-    click_on "Create Home"
+    click_on "Create Notice"
 
-    assert_text "Home was successfully created"
+    assert_text "Notice was successfully created"
     click_on "Back"
   end
 
   test "should update Home" do
     visit home_url(@home)
-    click_on "Edit this home", match: :first
+    click_on "Edit this notice", match: :first
 
-    click_on "Update Home"
+    click_on "Update Notice"
 
-    assert_text "Home was successfully updated"
+    assert_text "Notice was successfully updated"
     click_on "Back"
   end
 
   test "should destroy Home" do
     visit home_url(@home)
-    click_on "Destroy this home", match: :first
+    click_on "Destroy this notice", match: :first
 
-    assert_text "Home was successfully destroyed"
+    assert_text "Notice was successfully destroyed"
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
@@ -7,6 +9,6 @@ class User < ApplicationRecord
 
   def self.from_omniauth(access_token)
     data = access_token.info
-    user = User.where(email: data['email']).first || User.new
+    User.where(email: data['email']).first || User.new
   end
 end

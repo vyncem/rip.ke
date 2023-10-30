@@ -5,16 +5,18 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
 
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
   <body>
-    <p class="notice"><%= notice %></p>
-    <p class="alert"><%= alert %></p>
-     <p>
-      <%= link_to "Sign out", destroy_user_session_path, method: :get %>
+    <p style="color: green" class="notice"><%= notice %></p>
+    <p style="color: red" class="alert"><%= alert %></p>
+     <p class="p-4 float-right">
+      <%= current_user&.email %>
+      <%= link_to "Sign out", destroy_user_session_path, method: :get, class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800" %>
     </p>
     <%= yield %>
   </body>

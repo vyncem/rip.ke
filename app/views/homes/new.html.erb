@@ -1,9 +1,11 @@
-<h1>New home</h1>
+<div class="p-4">
+  <h1 class="text-3xl font-bold underline">New notice</h1>
 
-<%= render "form", home: @home %>
+  <%= render "form", home: @home %>
 
-<br>
+  <br>
 
-<div>
-  <%= link_to "Back to homes", homes_path %>
+  <div>
+    <%= link_to "Back to notices", homes_path, class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4" %>
+  </div>
 </div>

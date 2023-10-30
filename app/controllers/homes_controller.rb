@@ -1,14 +1,15 @@
-class HomesController < ApplicationController
-  before_action :set_home, only: %i[ show edit update destroy ]
+# frozen_string_literal: true
+
+class HomesController < ApplicationController # rubocop:disable Metrics/ClassLength
+  before_action :set_home, only: %i[show edit update destroy]
 
   # GET /homes or /homes.json
   def index
-    @homes = Home.all
+    @pull_requests = ghs.pull_requests
   end
 
   # GET /homes/1 or /homes/1.json
-  def show
-  end
+  def show; end
 
   # GET /homes/new
   def new
@@ -16,22 +17,30 @@ class HomesController < ApplicationController
   end
 
   # GET /homes/1/edit
-  def edit
+  def edit; end
+
+  def merge
+    message = ghs.merge_pull_request(params[:home_id])
+
+    redirect_to homes_url, notice: message
+  end
+
+  def delete
+    message = ghs.delete_content(params[:file], params[:image])
+
+    redirect_to homes_url, notice: message
   end
 
   # POST /homes or /homes.json
   def create
-    # debugger
-    @home = Home.new(home_params)
+    res = [res_txt, res_img]
 
     respond_to do |format|
-      if @home.save
-        format.html { redirect_to home_url(@home), notice: "Home was successfully created." }
-        format.json { render :show, status: :created, location: @home }
-      else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @home.errors, status: :unprocessable_entity }
-      end
+      format.html { redirect_to homes_url, notice: "Notice was successfully created. #{res}" }
+    end
+  rescue StandardError => e
+    respond_to do |format|
+      format.html { redirect_to new_home_url, alert: e.message }
     end
   end
 
@@ -39,7 +48,7 @@ class HomesController < ApplicationController
   def update
     respond_to do |format|
       if @home.update(home_params)
-        format.html { redirect_to home_url(@home), notice: "Home was successfully updated." }
+        format.html { redirect_to home_url(@home), notice: 'Notice was successfully updated.' }
         format.json { render :show, status: :ok, location: @home }
       else
         format.html { render :edit, status: :unprocessable_entity }
@@ -53,19 +62,95 @@ class HomesController < ApplicationController
     @home.destroy!
 
     respond_to do |format|
-      format.html { redirect_to homes_url, notice: "Home was successfully destroyed." }
+      format.html { redirect_to homes_url, notice: 'Notice was successfully destroyed.' }
       format.json { head :no_content }
     end
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_home
-      @home = Home.find(params[:id])
-    end
 
-    # Only allow a list of trusted parameters through.
-    def home_params
-      params.require(:home).permit(:title, :content)
-    end
+  def res_img
+    ghs.write(image_name, content, 'base64')[:parents].second[:html_url]
+  end
+
+  def content
+    image_file = Tempfile.new('foo', binmode: true)
+    image_file.write(file.download)
+    image_file.rewind
+    resize_file = MiniMagick::Image.open(image_file.path)
+    resize_file.resize '512x256!'
+    content = Base64.strict_encode64(resize_file.to_blob)
+    image_file.close
+    image_file.unlink
+    content
+  end
+
+  def image_name
+    "assets/images/#{full_name}.#{file[:filename].split('.')[1]}"
+  end
+
+  def body
+    home.content.body
+  end
+
+  def file
+    body.attachments.first.attachable
+  end
+
+  def res_txt
+    ghs.write("_notices/#{full_name}.md", text)[:parents].second[:html_url]
+  end
+
+  def full_name
+    "#{dod}_#{dob}_#{name}".gsub('-', '_').gsub(' ', '_')
+  end
+
+  def name
+    home_params.delete(:name)
+  end
+
+  def dob
+    home_params.delete(:dob)
+  end
+
+  def dod
+    home_params.delete(:dod)
+  end
+
+  def county
+    home_params.delete(:county)
+  end
+
+  def home
+    Home.new(home_params.except(:name, :dod, :dob, :county))
+  end
+
+  def text
+    <<~TEXT
+      ---
+      name: #{name}
+      dob: #{dob}
+      dod: #{dod}
+      county: #{county}
+      pic: /#{image_name}
+      user: #{current_user.id}
+      layout: post
+      ---
+      <p class='py-2'>#{body.to_plain_text.gsub(/\[.*?\]/, '').gsub("\n", "</\p><p class='py-2'>")}</p>
+    TEXT
+  end
+
+  def ghs
+    @ghs ||= GithubService.new
+  end
+
+  # Use callbacks to share common setup or constraints between actions.
+  def set_home
+    @home = Home.find(params[:id])
+  end
+
+  # Only allow a list of trusted parameters through.
+  def home_params
+    params.require(:home).permit(:content, :name, :dob, :dod, :county)
+  end
 end

@@ -1,14 +1,35 @@
-<p style="color: green"><%= notice %></p>
+<h1 class="text-3xl font-bold underline p-4">Notices</h1>
 
-<h1>Homes</h1>
+<div id="homes", class="p-4">
+  <% @pull_requests&.each do |pull_request| %>
 
-<div id="homes">
-  <% @homes.each do |home| %>
-    <%= render home %>
-    <p>
-      <%= link_to "Show this home", home %>
-    </p>
+    <div class="invisible"> <%= pull_request[:url] %> </div>
+
+    <% pull_request[:files]&.each_with_index do |file, index| %>
+      <% if file.split('.').last == 'md' %>
+        <div class="border-t-4 m-4 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 light:bg-gray-700 light:border-gray-600 light:placeholder-gray-400 light:text-white light:focus:ring-blue-500 light:focus:border-blue-500" >
+          <% image_index = index + (pull_request[:files].size/2) %>
+          <% image = pull_request[:files][image_index]%>
+          <% img_root = 'https://raw.githubusercontent.com/rip-coke/rip/draft/' %>
+
+          <p class="py-4"> <%= link_to "Delete", home_delete_url(pull_request[:id], image: image, file: file) , class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4" %> </p>
+          <p><img src='<%= "#{img_root}/#{image}" %>' width="512" height="256"></p>
+          <%= pull_request[:text][index]&.gsub('+', ' <br/> ')&.html_safe %>
+        </div>
+      <% end %>
+    <% end %>
+
+    <% if ['oliviamuia09@gmail.com', 'vyncem@gmail.com', 'nataliejeropbullut@gmail.com'].include?(current_user.email) %>
+      <p class="py-4">
+        <%= link_to "Merge", home_merge_url(pull_request[:id]), class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4" %>
+      </p>
+    <%else%>
+      <%= call_mpesa %>
+    <% end %>
+
   <% end %>
 </div>
 
-<%= link_to "New home", new_home_path %>
+<p class="p-4">
+  <%= link_to "New notice", new_home_path, class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4"%>
+</p>
