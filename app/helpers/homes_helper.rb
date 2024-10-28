@@ -2,7 +2,7 @@
 
 module HomesHelper
   def call_mpesa
-    MpesaService.new(amount: 1, payer: 254_708_374_149, payee: 174_379).call
+    MpesaService.new(amount: 1, payer: ENV.fetch('DARAJA_PAYER', nil), payee: ENV.fetch('DARAJA_SHORT_CODE', nil)).call
   end
 
   def counties # rubocop:disable Metrics/MethodLength

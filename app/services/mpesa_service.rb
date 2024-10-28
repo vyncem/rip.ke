@@ -4,7 +4,7 @@ require 'base64'
 include Rails.application.routes.url_helpers
 
 class MpesaService
-  BASE_URL = 'https://sandbox.safaricom.co.ke'
+  BASE_URL = Rails.env == 'development' ? 'https://sandbox.safaricom.co.ke' : 'https://api.safaricom.co.ke'
 
   def initialize(amount:, payer:, payee:)
     @amount = amount
@@ -49,17 +49,21 @@ class MpesaService
     { 'Content-Type': 'application/json' }
   end
 
+  def timestamp
+    Time.now.strftime('%Y%m%d%H%M%S')
+  end
+
   def body # rubocop:disable Metrics/MethodLength
     {
       BusinessShortCode: @payee,
-      Password: 'MTc0Mzc5YmZiMjc5ZjlhYTliZGJjZjE1OGU5N2RkNzFhNDY3Y2QyZTBjODkzMDU5YjEwZjc4ZTZiNzJhZGExZWQyYzkxOTIwMjQwMTE1MTk0MTQ3', # base64.encode(Shortcode+Passkey+Timestamp)
-      Timestamp: '20240115194147', # YYYYMMDDHHmmss
+      Password: Base64.strict_encode64(@payee.to_s + ENV.fetch('DARAJA_PASS_KEY', nil) + timestamp),
+      Timestamp: timestamp, # YYYYMMDDHHmmss
       TransactionType: 'CustomerPayBillOnline',
       Amount: @amount,
       PartyA: @payer,
       PartyB: @payee,
       PhoneNumber: @payer,
-      CallBackURL: mpesas_url,
+      CallBackURL: mpesas_url(host: 'admin.rip.ke'),
       AccountReference: 'CompanyXLTD',
       TransactionDesc: 'Payment of X'
     }
