@@ -6,6 +6,7 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
   # GET /homes or /homes.json
   def index
     @pull_requests = ghs.pull_requests
+    @reply = params[:reply]
   end
 
   # GET /homes/1 or /homes/1.json
@@ -19,10 +20,22 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
   # GET /homes/1/edit
   def edit; end
 
+  def check
+    # if ['oliviamuia09@gmail.com', 'vyncem@gmail.com', 'nataliejeropbullut@gmail.com'].include?(current_user.email)
+    # message = ghs.merge_pull_request(params[:home_id])
+
+    if params[:reply].include?('ws_')
+      message = JSON.parse(MpesaQueryService.new(id: params[:reply].split('-')[1], payer: ENV.fetch('DARAJA_PAYER', nil),
+                                                 payee: ENV.fetch('DARAJA_SHORT_CODE', nil)).call)
+    end
+
+    redirect_to controller: :homes, action: :index, reply: message['errorMessage'] || "#{message['ResultDesc']}-#{message['CheckoutRequestID']}"
+  end
+
   def merge
     message = ghs.merge_pull_request(params[:home_id])
 
-    redirect_to homes_url, notice: message
+    redirect_to controller: :homes, action: :index, reply: message
   end
 
   def delete

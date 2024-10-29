@@ -24,9 +24,22 @@
         <%= link_to "Merge", home_merge_url(pull_request[:id]), class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4" %>
       </p>
     <%else%>
-      <p class="py-4">
-        <%= link_to "Pay", mpesas_url, class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4" %>
-      </p>
+      <% if @reply && @reply.include?('Success') %>
+        <%= @reply %>
+        <p class="py-4">
+          <%= link_to "Check", home_check_url(pull_request[:id], reply: @reply), class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4" %>
+        </p>
+      <%elsif @reply && @reply.include?('successfully')%>
+        <%= @reply %>
+        <p class="py-4">
+          <%= link_to "Merge", home_merge_url(pull_request[:id], reply: @reply), class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4" %>
+        </p>
+      <%else%>
+        <%= @reply %>
+        <p class="py-4">
+          <%= link_to "Pay", mpesas_url, class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4" %>
+        </p>
+      <%end%>
     <% end %>
 
   <% end %>

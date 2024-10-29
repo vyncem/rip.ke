@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
   resources :homes do
+    get :check
     get :merge
     get :delete
   end

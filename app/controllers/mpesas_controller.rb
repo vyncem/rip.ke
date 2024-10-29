@@ -6,7 +6,7 @@ class MpesasController < ApplicationController
 
     Rails.logger.info(@mpesas)
 
-    redirect_to homes_url, notice: @mpesas
+    redirect_to controller: :homes, action: :index, reply: @mpesas['errorMessage'] || "#{@mpesas['ResponseDescription']}-#{@mpesas['CheckoutRequestID']}"
   end
   alias create index
 
