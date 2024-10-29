@@ -2,9 +2,6 @@
 
 <div id="homes", class="p-4">
   <% @pull_requests&.each do |pull_request| %>
-
-    <div class="invisible"> <%= pull_request[:url] %> </div>
-
     <% pull_request[:files]&.each_with_index do |file, index| %>
       <% if file.split('.').last == 'md' %>
         <div class="border-t-4 m-4 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 light:bg-gray-700 light:border-gray-600 light:placeholder-gray-400 light:text-white light:focus:ring-blue-500 light:focus:border-blue-500" >
@@ -17,34 +14,41 @@
           <%= pull_request[:text][index]&.gsub('+', ' <br/> ')&.html_safe %>
         </div>
       <% end %>
-    <% end %>
-
-    <% if ['oliviamuia09@gmail.com', 'vyncem@gmail.com', 'nataliejeropbullut@gmail.com'].include?(current_user.email) %>
-      <p class="py-4">
-        <%= link_to "Merge", home_merge_url(pull_request[:id]), class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4" %>
-      </p>
-    <%else%>
-      <% if @reply && @reply.include?('Success') %>
-        <%= @reply %>
+      <% if ['oliviamuia09@gmail.com', 'vyncem@gmail.com', 'nataliejeropbullut@gmail.com'].include?(current_user.email) %>
         <p class="py-4">
-          <%= link_to "Check", home_check_url(pull_request[:id], reply: @reply), class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4" %>
-        </p>
-      <%elsif @reply && @reply.include?('successfully')%>
-        <%= @reply %>
-        <p class="py-4">
-          <%= link_to "Merge", home_merge_url(pull_request[:id], reply: @reply), class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4" %>
+          <%= link_to "Merge", home_merge_url(pull_request[:id]), class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4" %>
         </p>
       <%else%>
-        <%= @reply %>
-        <p class="py-4">
-          <%= link_to "Pay", mpesas_url, class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4" %>
-        </p>
-      <%end%>
+        <% if @reply && @reply.include?('Success') %>
+          <%= @reply %>
+          <p class="py-4">
+            <%= link_to "Check", home_check_url(pull_request[:id], reply: @reply), class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4" %>
+          </p>
+        <%elsif @reply && @reply.include?('successfully')%>
+          <%= @reply %>
+          <p class="py-4">
+            <%= link_to "Merge", home_merge_url(pull_request[:id], reply: @reply), class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4" %>
+          </p>
+        <%else%>
+          <%= @reply %>
+          <%= form_with url: mpesas_path do |form| %>
+            <p class = "py-4" >
+              <%= form.text_field :payee, value: @payee, class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 light:bg-gray-700 light:border-gray-600 light:placeholder-gray-400 light:text-white light:focus:ring-blue-500 light:focus:border-blue-500"  %>
+            </p>
+            <p class = "py-4" >
+              <%= form.submit "Pay", class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4" %>
+            </p>
+          <% end %>
+        <%end%>
+      <% end %>
     <% end %>
-
   <% end %>
+
+  <%unless @pull_requests.present? && @pull_requests.first[:files].present? %>
+      <p class="p-4">
+        <%= link_to "New notice", new_home_path, class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4"%>
+      </p>
+    <%end%>
 </div>
 
-<p class="p-4">
-  <%= link_to "New notice", new_home_path, class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4"%>
-</p>
+

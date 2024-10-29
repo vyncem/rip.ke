@@ -6,6 +6,8 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
   # GET /homes or /homes.json
   def index
     @pull_requests = ghs.pull_requests
+    @payee = '254'
+    # @payee = ENV.fetch('DARAJA_PAYER', nil)
     @reply = params[:reply]
   end
 

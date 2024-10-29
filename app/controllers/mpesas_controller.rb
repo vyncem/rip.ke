@@ -14,7 +14,7 @@ class MpesasController < ApplicationController
 
   def call_mpesa
     JSON.parse(
-      MpesaService.new(amount: 1, payer: ENV.fetch('DARAJA_PAYER', nil), payee: ENV.fetch('DARAJA_SHORT_CODE', nil)).call
+      MpesaService.new(amount: 1, payer: params[:payee], payee: ENV.fetch('DARAJA_SHORT_CODE', nil)).call
     )
   end
 end
