@@ -31,7 +31,7 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
                                                  payee: ENV.fetch('DARAJA_SHORT_CODE', nil)).call)
     end
 
-    redirect_to controller: :homes, action: :index, reply: message['errorMessage'] || "#{message['ResultDesc']}-#{message['CheckoutRequestID']}"
+    redirect_to controller: :homes, action: :index, reply: (message && message['errorMessage']) || (message && "#{message['ResultDesc']}-#{message['CheckoutRequestID']}") || 'No message'
   end
 
   def merge

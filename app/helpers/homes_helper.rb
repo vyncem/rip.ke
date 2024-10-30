@@ -5,6 +5,31 @@ module HomesHelper
     MpesaService.new(amount: 1, payer: ENV.fetch('DARAJA_PAYER', nil), payee: ENV.fetch('DARAJA_SHORT_CODE', nil)).call
   end
 
+  def body_text(pull_request, index)
+    pull_request[:text][index]&.gsub(/---\s?.+?---/m, '')&.gsub(/@@\s?.+?@@/m, '')&.gsub("<p class='py-2'></p>", '')&.gsub('+', '')&.html_safe
+  end
+
+  def name(pull_request, index)
+    header_text(pull_request, index).split(':')[1].split('<br/>')[0]
+  end
+
+  def dob(pull_request, index)
+    header_text(pull_request, index).split(':')[2].split('<br/>')[0]
+  end
+
+  def dod(pull_request, index)
+    header_text(pull_request, index).split(':')[3].split('<br/>')[0]
+  end
+
+  def county(pull_request, index)
+    header_text(pull_request, index).split(':')[4].split('<br/>')[0]
+  end
+
+  def header_text(pull_request, index)
+    breaker = '---'
+    pull_request[:text][index]&.gsub('+', ' <br/> ')&.html_safe&.[](/#{breaker}(.*?)#{breaker}/m, 1)
+  end
+
   def counties # rubocop:disable Metrics/MethodLength
     [
       ['Nairobi', 'Nairobi'],
