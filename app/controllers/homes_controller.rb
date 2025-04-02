@@ -93,7 +93,7 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
     image_file.write(file.download)
     image_file.rewind
     resize_file = MiniMagick::Image.open(image_file.path)
-    resize_file.resize '512x256!'
+    resize_file.resize '512x512!'
     content = Base64.strict_encode64(resize_file.to_blob)
     image_file.close
     image_file.unlink
