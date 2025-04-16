@@ -69,6 +69,7 @@ group :test do
 end
 
 gem 'devise', '~> 4.9'
+gem "devise-passwordless"
 
 gem 'omniauth-google-oauth2', '~> 1.1'
 
