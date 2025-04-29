@@ -10,19 +10,19 @@ module HomesHelper
   end
 
   def name(pull_request, index)
-    header_text(pull_request, index).split(':')[1].split('<br/>')[0]
+    header_text(pull_request, index).split(':')[1].split('<br/>')[0] if header_text(pull_request, index)
   end
 
   def dob(pull_request, index)
-    header_text(pull_request, index).split(':')[2].split('<br/>')[0]
+    header_text(pull_request, index).split(':')[2].split('<br/>')[0] if header_text(pull_request, index)
   end
 
   def dod(pull_request, index)
-    header_text(pull_request, index).split(':')[3].split('<br/>')[0]
+    header_text(pull_request, index).split(':')[3].split('<br/>')[0] if header_text(pull_request, index)
   end
 
   def county(pull_request, index)
-    header_text(pull_request, index).split(':')[4].split('<br/>')[0]
+    header_text(pull_request, index).split(':')[4].split('<br/>')[0] if header_text(pull_request, index)
   end
 
   def header_text(pull_request, index)
