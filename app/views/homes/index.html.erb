@@ -22,7 +22,7 @@
               class="mx-auto mt-3 grid max-w-2xl grid-cols-1 gap-x-4 gap-y-4 lg:mx-0 lg:max-w-none lg:grid-cols-2"
             >
               <div class="relative w-full">
-                <% img_root = "https://raw.githubusercontent.com/rip-coke/rip/#{current_user.id}_draft/" %>
+                <% img_root = "https://raw.githubusercontent.com/rip-coke/rip/#{current_user.id}_#{GithubService::BRANCH}/" %>
                 <img
                   src='<%= "#{img_root}/#{image}" %>'
                   alt=""
