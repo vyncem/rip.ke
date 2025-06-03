@@ -1,9 +1,18 @@
 <h1 class="text-3xl font-bold underline p-4">Notices</h1>
 
 <div id="homes", class="p-4">
+  <% pull_user_ids = @pull_requests ? @pull_requests.map {|pull_request| pull_request[:text].map {|tex,index| tex&.split('+')&.select {|text| text.include? 'user'}&.first&.split(':')&.second&.gsub(/[\n]+/,'')&.gsub(' ','')}}.flatten : []%>
+  <%= pull_user_ids %>
+  <%= current_user.id.to_s %>
+  <%= pull_user_ids.include?(current_user.id.to_s) %>
   <% @pull_requests&.each do |pull_request| %>
+    <% pull_user_id = pull_request[:text].map { |tex| tex&.split('+')&.select {|text| text.include? 'user'}&.first&.split(':')&.second&.gsub(/[\n]+/,'')&.gsub(' ','') } %>
     <% pull_request[:files]&.each_with_index do |file, index| %>
-      <% if file.split('.').last == 'md' %>
+      <% if file.split('.').last == 'md' && pull_user_id[index] == current_user.id.to_s %>
+        <%= pull_user_id %>
+        <%= current_user.id %>
+        <%= pull_user_id.include?(current_user.id.to_s) %>
+        <%= pull_user_id[index] == current_user.id.to_s %>
         <% image_index = index + (pull_request[:files].size/2) %>
         <% image = pull_request[:files][image_index]%>
         <p class="py-4"> <%= link_to "Delete", home_delete_url(pull_request[:id], image: image, file: file) , class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4" %> </p>
@@ -13,7 +22,7 @@
               class="mx-auto mt-3 grid max-w-2xl grid-cols-1 gap-x-4 gap-y-4 lg:mx-0 lg:max-w-none lg:grid-cols-2"
             >
               <div class="relative w-full">
-                <% img_root = 'https://raw.githubusercontent.com/rip-coke/rip/draft/' %>
+                <% img_root = "https://raw.githubusercontent.com/rip-coke/rip/#{current_user.id}_draft/" %>
                 <img
                   src='<%= "#{img_root}/#{image}" %>'
                   alt=""
@@ -76,7 +85,9 @@
     <% end %>
   <% end %>
 
-  <%unless @pull_requests.present? && @pull_requests.first[:files].present? %>
+  <%unless @pull_requests.present? && @pull_requests.first[:files].present? && pull_user_ids.include?(current_user.id.to_s) %>
+      <%= pull_user_ids %>
+      <%= current_user.id.to_s %>
       <p class="p-4">
         <%= link_to "New notice", new_home_path, class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 p-4"%>
       </p>
