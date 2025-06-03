@@ -8,8 +8,9 @@ class GithubService
   BASE_BRANCH = 'master'
   BRANCH = 'draft'
 
-  def initialize
+  def initialize(id)
     @client = Octokit::Client.new(access_token: ENV.fetch('GITHUB_TOKEN', nil))
+    @id = id
   end
 
   def write_image(file_path_and_name, image_file)
@@ -29,18 +30,19 @@ class GithubService
     tree = client.create_tree(REPO, [options])
 
     commit = client.create_commit(REPO, file_path_and_name, tree.sha)
-
-    client.merge(REPO, BRANCH, commit.sha)
+    
+    create_branch
+    client.merge(REPO, user_branch, commit.sha)
   end
 
   def pull_requests
     begin
-      client.create_pull_request(REPO, BASE_BRANCH, BRANCH, "#{BASE_BRANCH} < #{BRANCH}") unless compare_ahead?
+      client.create_pull_request(REPO, BASE_BRANCH, user_branch, "#{BASE_BRANCH} < #{user_branch}") unless compare_ahead?
     rescue StandardError => e
       e
     end
 
-    client.pull_requests(REPO).map do |pull_request|
+    client.pull_requests(REPO).select { |pr| pr[:head][:ref] == user_branch }.map do |pull_request|
       pull_request_content(pull_request)
     end
   end
@@ -63,18 +65,31 @@ class GithubService
   end
 
   def merge_pull_request(pull_request_number)
-    client.merge_pull_request(REPO, pull_request_number, "#{BASE_BRANCH} < #{BRANCH}") unless pull_requests.blank?
+    client.merge_pull_request(REPO, pull_request_number, "#{BASE_BRANCH} < #{user_branch}") unless pull_requests.blank?
   end
 
   def compare_ahead?
-    client.compare(REPO, BASE_BRANCH, BRANCH)[:ahead_by].zero?
+    client.compare(REPO, BASE_BRANCH, user_branch)[:ahead_by].zero?
   end
 
   def delete_content(image, file)
-    sha = client.contents(REPO, path: file, ref: BRANCH)[:sha]
-    client.delete_contents(REPO, file, 'Delete', sha, branch: BRANCH)[:commit][:sha]
+    sha = client.contents(REPO, path: file, ref: user_branch)[:sha]
+    client.delete_contents(REPO, file, 'Delete', sha, branch: user_branch)[:commit][:sha]
 
-    sha = client.contents(REPO, path: image, ref: BRANCH)[:sha]
-    client.delete_contents(REPO, image, 'Delete', sha, branch: BRANCH)[:commit][:sha]
+    sha = client.contents(REPO, path: image, ref: user_branch)[:sha]
+    client.delete_contents(REPO, image, 'Delete', sha, branch: user_branch)[:commit][:sha]
+  end
+
+  def user_branch
+    "#{@id}_#{BRANCH}"
+  end
+
+  def create_branch
+    begin
+      base_branch_ref_sha = client.ref(REPO, "heads/#{BASE_BRANCH}").object.sha
+      client.create_ref(REPO, "heads/#{user_branch}", base_branch_ref_sha)
+    rescue StandardError => e
+      e
+    end
   end
 end

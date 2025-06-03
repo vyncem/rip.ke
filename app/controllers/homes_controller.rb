@@ -156,7 +156,7 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
   end
 
   def ghs
-    @ghs ||= GithubService.new
+    @ghs ||= GithubService.new(current_user.id)
   end
 
   # Use callbacks to share common setup or constraints between actions.
