@@ -6,6 +6,7 @@ Rails.application.routes.draw do
   end
   resources :mpesas, only: %i[index create]
   devise_for :users, controllers: { omniauth_callbacks: 'users/omniauth_callbacks' }
+  match :verified, to: 'homes#verified', via: :post
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
