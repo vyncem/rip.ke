@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class HomesController < ApplicationController # rubocop:disable Metrics/ClassLength
+  skip_before_action :authenticate_user!, only: :verify
+
   before_action :set_home, only: %i[show edit update destroy]
 
   # GET /homes or /homes.json
@@ -35,6 +37,7 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
   end
 
   def verify
+    Rails.logger.info(params)
     id = params[:home_id]
     Rails.logger.info(id)
     uri = URI("https://api.paystack.co/transaction/verify/#{id}")
@@ -48,7 +51,6 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
     else
       flash[:alert] = "Payment failed!"
     end
-    redirect_to homes_path
   end
 
   def merge
