@@ -2,6 +2,7 @@
 
 class HomesController < ApplicationController # rubocop:disable Metrics/ClassLength
   skip_before_action :authenticate_user!, only: %i[verify verified]
+  skip_forgery_protection only: %i[verified]
 
   before_action :set_home, only: %i[show edit update destroy]
 
@@ -38,6 +39,10 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
 
   def verified
     Rails.logger.info(params)
+    respond_to do |format|
+      format.html { render :verify }
+      format.json { render json: params, status: 200 }
+    end
   end
 
   def verify
