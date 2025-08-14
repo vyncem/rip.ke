@@ -34,6 +34,21 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
     redirect_to controller: :homes, action: :index, reply: (message && message['errorMessage']) || (message && "#{message['ResultDesc']}-#{message['CheckoutRequestID']}") || 'No message'
   end
 
+  def verify
+    id = params[:id]
+    uri = URI("https://api.paystack.co/transaction/verify/#{reference}")
+    req = Net::HTTP::Get.new(uri)
+    req['Authorization'] = "Bearer #{ENV['PAYSTACK_SECRET_KEY']}"
+    res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
+    result = JSON.parse(res.body)
+    if result['data'] && result['data']['status'] == 'success'
+      flash[:notice] = "Payment successful!"
+    else
+      flash[:alert] = "Payment failed!"
+    end
+    redirect_to homes_path
+  end
+
   def merge
     message = ghs.merge_pull_request(params[:home_id])
 
