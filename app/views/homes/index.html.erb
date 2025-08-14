@@ -11,6 +11,7 @@
           amount: 100, 
           callback: function(response){
             window.location.href = url.substring('code', response.reference);
+            console.log('hi' + window.location.href);
           },
           onClose: function(){
             alert('Payment window closed');
