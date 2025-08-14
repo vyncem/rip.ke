@@ -1,11 +1,45 @@
 
 <script type="module">
+  console.log('Paystack JavaScript loaded');
+
+    console.log('<%= ENV.fetch('PAYSTACK_PUBLIC_KEY', nil) %>');
     import Paystack from '@paystack/inline-js';
     const popup = new Paystack()
     var url = "<%= html_escape(home_verify_url('code')) %>"
     document.getElementById('paystackBtn').onclick = function(e) {
+      e.preventDefault();
+        var handler = popup.newTransaction({
+        key: '<%= ENV.fetch("PAYSTACK_PUBLIC_KEY", nil) %>',
+        email: 'sample@email.com',
+        amount: 100,
+        callback: function(response){
+          window.location.href = url.substring('code', response.reference);
+          console.log('hi' + window.location.href);
+        },
+        onSuccess: (transaction) => {
+          console.log(transaction);
+        },
+        onLoad: (response) => {
+          console.log("onLoad: ", response);
+        },
+        onCancel: () => {
+          console.log("onCancel");
+        },
+        onError: (error) => {
+          console.log("Error: ", error.message);
+        },
+        onClose: function(){
+          alert('Payment window closed');
+        }
+      });
+      handler.openIframe();
+    }
+    /* import Paystack from '@paystack/inline-js';
+    const popup = new Paystack()
+    var url = "<%= html_escape(home_verify_url('code')) %>"
+    document.getElementById('paystackBtn').onclick = function(e) {
         e.preventDefault();
-        var handler = Paystack.setup({
+        var handler = Paystack.PaystackPop({
           key: '<%= ENV.fetch("PAYSTACK_PUBLIC_KEY", nil) %>',
           email: '<%= current_user.email %>',
           amount: 100, 
@@ -19,6 +53,7 @@
         });
         handler.openIframe();
       }
+    */
 </script>
 
 <h1 class="text-3xl font-bold underline p-4">Notices</h1>
