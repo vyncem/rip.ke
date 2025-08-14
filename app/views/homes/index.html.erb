@@ -8,14 +8,10 @@
     var url = "<%= html_escape(home_verify_url('code')) %>"
     document.getElementById('paystackBtn').onclick = function(e) {
       e.preventDefault();
-        var handler = popup.newTransaction({
+       popup.newTransaction({
         key: '<%= ENV.fetch("PAYSTACK_PUBLIC_KEY", nil) %>',
         email: 'sample@email.com',
         amount: 100,
-        callback: function(response){
-          window.location.href = url.substring('code', response.reference);
-          console.log('hi' + window.location.href);
-        },
         onSuccess: (transaction) => {
           console.log(transaction);
         },
@@ -32,7 +28,6 @@
           alert('Payment window closed');
         }
       });
-      handler.openIframe();
     }
     /* import Paystack from '@paystack/inline-js';
     const popup = new Paystack()
