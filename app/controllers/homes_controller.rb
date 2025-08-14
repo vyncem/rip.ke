@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class HomesController < ApplicationController # rubocop:disable Metrics/ClassLength
-  skip_before_action :authenticate_user!, only: :verify
+  skip_before_action :authenticate_user!, only: %i[verify verified]
 
   before_action :set_home, only: %i[show edit update destroy]
 
@@ -34,6 +34,10 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
     end
 
     redirect_to controller: :homes, action: :index, reply: (message && message['errorMessage']) || (message && "#{message['ResultDesc']}-#{message['CheckoutRequestID']}") || 'No message'
+  end
+
+  def verified
+    Rails.logger.info(params)
   end
 
   def verify

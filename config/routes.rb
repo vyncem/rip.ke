@@ -3,6 +3,7 @@ Rails.application.routes.draw do
     get :check
     get :merge
     get :delete
+    post :verified
   end
   resources :mpesas, only: %i[index create]
   devise_for :users, controllers: { omniauth_callbacks: 'users/omniauth_callbacks' }
