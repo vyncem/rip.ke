@@ -1,3 +1,33 @@
+# <!-- initialize transaction -->
+# <!-- curl https://api.paystack.co/transaction/initialize -H "Authorization: Bearer ${PAYSTACK_SECRET_KEY}" -H "Content-Type: application/json" -d '{ "email": "customer@email.com", "amount": "1"}' -X POST -->
+# <!-- Verify transaction -->
+# <!-- curl https://api.paystack.co/transaction/verify/:reference -H "Authorization: Bearer ${PAYSTACK_SECRET_KEY}" -X GET -->
+
+<script type="module">
+  console.log('Paystack JavaScript loaded');
+
+  console.log('<%= ENV.fetch('PAYSTACK_PUBLIC_KEY', nil) %>');
+  import Paystack from '@paystack/inline-js';
+  const popup = new Paystack()
+  popup.newTransaction({
+    key: '<%= ENV.fetch("PAYSTACK_PUBLIC_KEY", nil) %>',
+    email: 'sample@email.com',
+    amount: 1,
+    onSuccess: (transaction) => {
+      console.log(transaction);
+    },
+    onLoad: (response) => {
+      console.log("onLoad: ", response);
+    },
+    onCancel: () => {
+      console.log("onCancel");
+    },
+    onError: (error) => {
+      console.log("Error: ", error.message);
+    }
+  })
+</script>
+
 <h1 class="text-3xl font-bold underline p-4">Notices</h1>
 
 <div id="homes", class="p-4">
