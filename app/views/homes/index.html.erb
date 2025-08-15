@@ -10,7 +10,7 @@
       e.preventDefault();
        popup.newTransaction({
         key: '<%= ENV.fetch("PAYSTACK_PUBLIC_KEY", nil) %>',
-        email: 'sample@email.com',
+        email: '<%= current_user.email %>',
         amount: 100,
         onSuccess: (transaction) => {
           console.log(transaction);
