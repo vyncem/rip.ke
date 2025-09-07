@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class HomesController < ApplicationController # rubocop:disable Metrics/ClassLength
-  skip_before_action :authenticate_user!, only: %i[verify verified]
+  skip_before_action :authenticate_user!, only: :verified
 
   before_action :set_home, only: %i[show edit update destroy]
 
@@ -38,23 +38,6 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
 
   def verified
     Rails.logger.info(params)
-  end
-
-  def verify
-    Rails.logger.info(params)
-    id = params[:home_id]
-    Rails.logger.info(id)
-    uri = URI("https://api.paystack.co/transaction/verify/#{id}")
-    req = Net::HTTP::Get.new(uri)
-    req['Authorization'] = "Bearer #{ENV['PAYSTACK_SECRET_KEY']}"
-    res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
-    result = JSON.parse(res.body)
-    Rails.logger.info(result)
-    if result['data'] && result['data']['status'] == 'success'
-      flash[:notice] = "Payment successful!"
-    else
-      flash[:alert] = "Payment failed!"
-    end
   end
 
   def merge
