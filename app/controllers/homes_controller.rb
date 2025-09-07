@@ -2,6 +2,7 @@
 
 class HomesController < ApplicationController # rubocop:disable Metrics/ClassLength
   skip_before_action :authenticate_user!, only: :verified
+  skip_before_action :verify_authenticity_token, only: :verified
 
   before_action :set_home, only: %i[show edit update destroy]
 
