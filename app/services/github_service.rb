@@ -5,7 +5,7 @@ class GithubService
 
   # REPO = 'vyncem/test_repo'
   REPO = 'rip-coke/rip'
-  BASE_BRANCH = 'master'
+  BASE_BRANCH = ENV.fetch('BASE_BRANCH', 'master')
   BRANCH = 'draft'
 
   def initialize(id)
