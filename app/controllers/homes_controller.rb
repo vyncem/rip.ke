@@ -50,6 +50,7 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
     dod = upload_params.delete(:dod)
     name = upload_params.delete(:name_obit)
     email = upload_params.delete(:email)
+    url = upload_params.delete(:url)
     message = upload_params.delete(:message)
     full_name = "#{dod}_#{dob}_#{name}".gsub('-', '_').gsub(' ', '_')
     name_length = attachment.original_filename.split('.').length
@@ -63,8 +64,8 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
       dod: #{dod}
       county: #{county}
       pic: /#{image_name}
-      user: #{user_name}_#{email}_#{phone}
-      layout: post
+      user: #{url}_#{user_name}_#{email}_#{phone}
+      layout: free_post
       ---
       <p class='py-2'>#{message.gsub(/\[.*?\]/, '').gsub("\n", "</\p><p class='py-2'>")}</p>
     TEXT
