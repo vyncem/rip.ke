@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class HomesController < ApplicationController # rubocop:disable Metrics/ClassLength
-  skip_before_action :authenticate_user!, only: :verified
-  skip_before_action :verify_authenticity_token, only: :verified
+  skip_before_action :authenticate_user!, only: %i[verified upload]
+  skip_before_action :verify_authenticity_token, only: %i[verified upload]
 
   before_action :set_home, only: %i[show edit update destroy]
 
@@ -39,6 +39,42 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
 
   def verified
     Rails.logger.info(params)
+  end
+
+  def upload
+    phone = upload_params.delete(:phone)
+    county = upload_params.delete(:county)
+    user_name = upload_params.delete(:name)
+    attachment = upload_params.delete(:attachment)
+    dob = upload_params.delete(:dob)
+    dod = upload_params.delete(:dod)
+    name = upload_params.delete(:name_obit)
+    email = upload_params.delete(:email)
+    message = upload_params.delete(:message)
+    full_name = "#{dod}_#{dob}_#{name}".gsub('-', '_').gsub(' ', '_')
+    name_length = attachment.original_filename.split('.').length
+    image_name = "assets/images/#{full_name}.#{attachment.original_filename.split('.')[name_length-1]}"
+    ghs = GithubService.new("#{email}_#{Time.current.to_i}")
+
+    text=<<~TEXT
+      ---
+      name: #{name}
+      dob: #{dob}
+      dod: #{dod}
+      county: #{county}
+      pic: /#{image_name}
+      user: #{user_name}_#{email}_#{phone}
+      layout: post
+      ---
+      <p class='py-2'>#{message.gsub(/\[.*?\]/, '').gsub("\n", "</\p><p class='py-2'>")}</p>
+    TEXT
+
+    res_img = ghs.write(image_name, content_upload(attachment), 'base64')[:parents].second[:html_url]
+    res_txt = ghs.write("_notices/#{full_name}.md", text)[:parents].second[:html_url]
+    res = [res_txt.split('/').last, res_img.split('/').last]
+    respond_to do |format|
+      format.html { render plain: "Notice was successfully created. #{res}" }
+    end
   end
 
   def merge
@@ -93,6 +129,18 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
 
   def res_img
     ghs.write(image_name, content, 'base64')[:parents].second[:html_url]
+  end
+
+  def content_upload(file)
+    image_file = Tempfile.new('foo', binmode: true)
+    image_file.write(file.read)
+    image_file.rewind
+    resize_file = MiniMagick::Image.open(image_file.path)
+    resize_file.resize '512x256!'
+    content = Base64.strict_encode64(resize_file.to_blob)
+    image_file.close
+    image_file.unlink
+    content
   end
 
   def content
@@ -174,5 +222,9 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
   # Only allow a list of trusted parameters through.
   def home_params
     params.require(:home).permit(:content, :name, :dob, :dod, :county)
+  end
+
+  def upload_params
+    params.permit(:url, :name, :email, :phone, :message, :attachment, :dob, :dod, :name_obit, :county)
   end
 end
