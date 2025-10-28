@@ -70,6 +70,8 @@ group :test do
   gem 'selenium-webdriver'
 end
 
+gem 'thruster'
+
 gem 'devise', '~> 4.9'
 
 gem 'omniauth-google-oauth2', '~> 1.1'
