@@ -1,0 +1,17 @@
+services:
+  web:
+    build: .
+    environment:
+      - DARAJA_AMOUNT
+      - DARAJA_KEY
+      - DARAJA_PASS_KEY
+      - DARAJA_PAYER
+      - DARAJA_SECRET
+      - DARAJA_SHORT_CODE
+      - GITHUB_TOKEN
+      - GOOGLE_CLIENT_ID
+      - GOOGLE_CLIENT_SECRET
+      - SECRET_KEY_BASE
+
+    ports:
+      - "3000:80"
