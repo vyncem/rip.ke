@@ -38,3 +38,6 @@
 !/app/assets/builds/.keep
 
 db/*.sqlite3*
+
+config/fullchain.pem
+config/privkey.pem
