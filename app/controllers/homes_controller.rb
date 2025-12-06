@@ -46,6 +46,10 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
     county = upload_params.delete(:county)
     user_name = upload_params.delete(:name)
     attachment = upload_params.delete(:attachment)
+    attachment_1 = upload_params.delete(:attachment_1)
+    attachment_2 = upload_params.delete(:attachment_2)
+    attachment_3 = upload_params.delete(:attachment_3)
+    attachment_4 = upload_params.delete(:attachment_4)
     dob = upload_params.delete(:dob)
     dod = upload_params.delete(:dod)
     name = upload_params.delete(:name_obit)
@@ -71,10 +75,15 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
     TEXT
 
     res_img = ghs.write(image_name, content_upload(attachment), 'base64')[:parents].second[:html_url]
+    res_img_1 = ghs.write("#{image_name}_1", content_upload(attachment_1), 'base64')[:parents].second[:html_url]
+    res_img_2 = ghs.write("#{image_name}_2", content_upload(attachment_2), 'base64')[:parents].second[:html_url]
+    res_img_3 = ghs.write("#{image_name}_3", content_upload(attachment_3), 'base64')[:parents].second[:html_url]
+    res_img_4 = ghs.write("#{image_name}_4", content_upload(attachment_4), 'base64')[:parents].second[:html_url]
     res_txt = ghs.write("_notices/#{full_name}.md", text)[:parents].second[:html_url]
-    res = [res_txt.split('/').last, res_img.split('/').last]
+    res = [res_txt.split('/').last, res_img.split('/').last, res_img_1.split('/').last, res_img_2.split('/').last, res_img_3.split('/').last, res_img_4.split('/').last]
     respond_to do |format|
       format.html { render plain: "Notice was successfully created. #{res}" }
+      format.json { render json: res, status: :ok }
     end
   end
 
@@ -226,6 +235,6 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
   end
 
   def upload_params
-    params.permit(:url, :name, :email, :phone, :message, :attachment, :dob, :dod, :name_obit, :county)
+    params.permit(:url, :name, :email, :phone, :message, :attachment, :attachment_1, :attachment_2, :attachment_3, :attachment_4, :dob, :dod, :name_obit, :county)
   end
 end
