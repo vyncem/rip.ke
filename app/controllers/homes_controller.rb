@@ -74,11 +74,11 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
       <p class='py-2'>#{message.gsub(/\[.*?\]/, '').gsub("\n", "</\p><p class='py-2'>")}</p>
     TEXT
 
-    res_img = ghs.write(image_name, content_upload(attachment), 'base64')[:parents].second[:html_url]
-    res_img_1 = ghs.write("#{image_name}_1", content_upload(attachment_1), 'base64')[:parents].second[:html_url]
-    res_img_2 = ghs.write("#{image_name}_2", content_upload(attachment_2), 'base64')[:parents].second[:html_url]
-    res_img_3 = ghs.write("#{image_name}_3", content_upload(attachment_3), 'base64')[:parents].second[:html_url]
-    res_img_4 = ghs.write("#{image_name}_4", content_upload(attachment_4), 'base64')[:parents].second[:html_url]
+    res_img = attachment ? ghs.write(image_name, content_upload(attachment), 'base64')[:parents].second[:html_url] : ''
+    res_img_1 = attachment_1 ? ghs.write("#{image_name}_1", content_upload(attachment_1), 'base64')[:parents].second[:html_url] : ''
+    res_img_2 = attachment_2 ? ghs.write("#{image_name}_2", content_upload(attachment_2), 'base64')[:parents].second[:html_url] : ''
+    res_img_3 = attachment_3 ? ghs.write("#{image_name}_3", content_upload(attachment_3), 'base64')[:parents].second[:html_url] : ''
+    res_img_4 = attachment_4 ? ghs.write("#{image_name}_4", content_upload(attachment_4), 'base64')[:parents].second[:html_url] : ''
     res_txt = ghs.write("_notices/#{full_name}.md", text)[:parents].second[:html_url]
     res = [res_txt.split('/').last, res_img.split('/').last, res_img_1.split('/').last, res_img_2.split('/').last, res_img_3.split('/').last, res_img_4.split('/').last]
     respond_to do |format|
