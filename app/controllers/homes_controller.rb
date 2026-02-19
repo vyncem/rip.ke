@@ -6,6 +6,8 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
 
   before_action :set_home, only: %i[show edit update destroy]
 
+  FOLDER = ENV.fetch('CONTENT_FOLDER', '_notices')
+
   # GET /homes or /homes.json
   def index
     @pull_requests = ghs.pull_requests
@@ -74,12 +76,11 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
       <p class='py-2'>#{message.gsub(/\[.*?\]/, '').gsub("\n", "</\p><p class='py-2'>")}</p>
     TEXT
 
-    res_img = attachment ? ghs.write(image_name, content_upload(attachment), 'base64')[:parents].second[:html_url] : ''
-    res_img_1 = attachment_1 ? ghs.write("#{image_name}_1", content_upload(attachment_1), 'base64')[:parents].second[:html_url] : ''
-    res_img_2 = attachment_2 ? ghs.write("#{image_name}_2", content_upload(attachment_2), 'base64')[:parents].second[:html_url] : ''
-    res_img_3 = attachment_3 ? ghs.write("#{image_name}_3", content_upload(attachment_3), 'base64')[:parents].second[:html_url] : ''
-    res_img_4 = attachment_4 ? ghs.write("#{image_name}_4", content_upload(attachment_4), 'base64')[:parents].second[:html_url] : ''
-    res_txt = ghs.write("_notices/#{full_name}.md", text)[:parents].second[:html_url]
+    res_img = attachment ? res_img(number = nil, attachment_1) : ''
+    res_img_1 = attachment_1 ? res_img(number = 1, attachment_1) : ''
+    res_img_2 = attachment_2 ? res_img(number = 2, attachment_2) : ''
+    res_img_3 = attachment_3 ? res_img(number = 3, attachment_3) : ''
+    res_img_4 = attachment_4 ? res_img(number = 4, attachment_4) : ''
     res = [res_txt.split('/').last, res_img.split('/').last, res_img_1.split('/').last, res_img_2.split('/').last, res_img_3.split('/').last, res_img_4.split('/').last]
     respond_to do |format|
       format.html { render plain: "Notice was successfully created. #{res}" }
@@ -137,25 +138,13 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
 
   private
 
-  def res_img
-    ghs.write(image_name, content, 'base64')[:parents].second[:html_url]
+  def res_img(number = nil, file = nil)
+    ghs.write(number ? "#{image_name}_#{number}" : image_name, content(file), 'base64')[:parents].second[:html_url]
   end
 
-  def content_upload(file)
+  def content(file = nil)
     image_file = Tempfile.new('foo', binmode: true)
-    image_file.write(file.read)
-    image_file.rewind
-    resize_file = MiniMagick::Image.open(image_file.path)
-    resize_file.resize '512x256!'
-    content = Base64.strict_encode64(resize_file.to_blob)
-    image_file.close
-    image_file.unlink
-    content
-  end
-
-  def content
-    image_file = Tempfile.new('foo', binmode: true)
-    image_file.write(file.download)
+    file ? image_file.write(file.read) : image_file.write(file_content.download)
     image_file.rewind
     resize_file = MiniMagick::Image.open(image_file.path)
     resize_file.resize '512x256!'
@@ -166,19 +155,19 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
   end
 
   def image_name
-    "assets/images/#{full_name}.#{file[:filename].split('.')[1]}"
+    "assets/images/#{full_name}.#{file_content[:filename].split('.')[1]}"
   end
 
   def body
     home.content.body
   end
 
-  def file
+  def file_content
     body.attachments.first.attachable
   end
 
   def res_txt
-    ghs.write("_notices/#{full_name}.md", text)[:parents].second[:html_url]
+    ghs.write("#{FOLDER}/#{full_name}.md", text)[:parents].second[:html_url]
   end
 
   def full_name
