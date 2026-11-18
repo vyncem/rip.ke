@@ -1,0 +1,44 @@
+<div class="p-4">
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <h1 class="text-3xl font-bold underline"><%= document_kind_label(@kind).pluralize %></h1>
+    <div class="flex flex-wrap items-center gap-2">
+      <%= link_to "Posts", posts_path,
+            class: "text-sm font-medium rounded-lg px-4 py-2 #{@kind == 'post' ? 'bg-blue-700 text-white' : 'bg-gray-100 text-gray-800'}" %>
+      <%= link_to "Pages", pages_path,
+            class: "text-sm font-medium rounded-lg px-4 py-2 #{@kind == 'page' ? 'bg-blue-700 text-white' : 'bg-gray-100 text-gray-800'}" %>
+      <%= link_to "New #{document_kind_label(@kind).downcase}", new_document_path,
+            class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5" %>
+    </div>
+  </div>
+
+  <% if @documents.any? %>
+    <ul class="mt-6 divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
+      <% @documents.each do |document| %>
+        <li class="flex flex-wrap items-center justify-between gap-4 p-4">
+          <div class="min-w-0">
+            <p class="truncate font-semibold text-gray-900">
+              <%= link_to document.display_title, document_show_path(document), class: "hover:text-blue-700 hover:underline" %>
+            </p>
+            <p class="truncate font-mono text-xs text-gray-500"><%= document.path %></p>
+          </div>
+          <div class="flex items-center gap-2">
+            <%= link_to "View", document_show_path(document),
+                  class: "rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-200" %>
+            <%= link_to "Edit", edit_document_path(document),
+                  class: "rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-200" %>
+            <%= button_to "Delete", document_show_path(document), method: :delete,
+                  form: { data: { turbo_confirm: "Delete #{document.display_title}?" } },
+                  class: "rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700" %>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <div class="mt-6 rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500">
+      <p>No <%= document_kind_label(@kind).downcase.pluralize %> found.</p>
+      <p class="mt-2 text-sm">
+        <%= link_to "Create the first one", new_document_path, class: "font-medium text-blue-700 hover:underline" %>
+      </p>
+    </div>
+  <% end %>
+</div>

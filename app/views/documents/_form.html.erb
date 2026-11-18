@@ -1,0 +1,80 @@
+<%= form_with model: document, scope: :document,
+              url: document.persisted? ? document_show_path(document) : document_index_path(document.kind),
+              method: document.persisted? ? :patch : :post,
+              class: "mt-6 max-w-3xl space-y-5" do |form| %>
+  <% if document.errors.any? %>
+    <div class="rounded-lg border border-red-300 bg-red-50 p-4 text-red-800">
+      <h2 class="font-semibold">
+        <%= pluralize(document.errors.count, "error") %> prohibited this <%= document_kind_label(document.kind).downcase %> from being saved:
+      </h2>
+      <ul class="mt-2 list-inside list-disc text-sm">
+        <% document.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <% if document.path.present? %>
+    <div>
+      <p class="block text-sm font-medium text-gray-900">File</p>
+      <p class="mt-1 font-mono text-sm text-gray-600"><%= document.path %></p>
+      <% if document.persisted? %>
+        <p class="mt-1 text-xs text-gray-500">The filename stays the same when the title changes.</p>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :title, class: "block mb-2 text-sm font-medium text-gray-900" %>
+    <%= form.text_field :title, required: true,
+          class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" %>
+  </div>
+
+  <% if document.kind == 'post' %>
+    <div>
+      <%= form.label :date, class: "block mb-2 text-sm font-medium text-gray-900" %>
+      <%= form.date_field :date,
+            class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" %>
+      <p class="mt-1 text-xs text-gray-500">Used in the filename when the post is first created.</p>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :layout, class: "block mb-2 text-sm font-medium text-gray-900" %>
+    <%= form.text_field :layout, required: true,
+          class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" %>
+  </div>
+
+  <% if document.kind == 'page' %>
+    <div>
+      <%= form.label :permalink, class: "block mb-2 text-sm font-medium text-gray-900" %>
+      <%= form.text_field :permalink, placeholder: "/about",
+            class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" %>
+      <p class="mt-1 text-xs text-gray-500">The URL where Jekyll should publish the page.</p>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :body, "Content", class: "block mb-2 text-sm font-medium text-gray-900" %>
+    <%= form.text_area :body, rows: 20,
+          class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-mono" %>
+    <p class="mt-1 text-xs text-gray-500">Markdown or HTML, without the surrounding <code>---</code> front matter.</p>
+  </div>
+
+  <details class="rounded-lg border border-gray-200 p-4">
+    <summary class="cursor-pointer text-sm font-medium text-gray-900">Front matter (advanced)</summary>
+    <p class="mt-2 text-xs text-gray-500">
+      YAML only. The title, date, layout and permalink fields above take precedence when the document is saved.
+    </p>
+    <%= form.text_area :front_matter_yaml, rows: 10,
+          class: "mt-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-mono" %>
+  </details>
+
+  <div class="flex items-center gap-3 pt-2">
+    <%= form.submit document.persisted? ? "Update #{document_kind_label(document.kind)}" : "Create #{document_kind_label(document.kind)}",
+          class: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5" %>
+    <%= link_to "Cancel", document.persisted? ? document_show_path(document) : document_index_path(document.kind),
+          class: "text-sm font-medium text-gray-700 hover:underline" %>
+  </div>
+<% end %>

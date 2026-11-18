@@ -1,0 +1,13 @@
+<div class="p-4">
+  <h1 class="text-3xl font-bold underline">Edit <%= document_kind_label(@document.kind).downcase %></h1>
+
+  <%= render "form", document: @document %>
+
+  <div class="mt-6">
+    <%= link_to "Show this #{document_kind_label(@document.kind).downcase}", document_show_path(@document),
+          class: "text-sm font-medium text-blue-700 hover:underline" %>
+    |
+    <%= link_to "Back to #{document_kind_label(@document.kind).downcase.pluralize}", document_index_path(@document.kind),
+          class: "text-sm font-medium text-blue-700 hover:underline" %>
+  </div>
+</div>
