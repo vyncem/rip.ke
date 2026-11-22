@@ -7,7 +7,7 @@ class DocumentsController < ApplicationController
   rescue_from Octokit::Error, with: :handle_github_error
 
   before_action :set_kind
-  before_action :set_document, only: %i[show edit update destroy]
+  before_action :set_document, only: %i[show edit update destroy publish]
 
   # GET /posts and GET /pages
   def index
@@ -19,7 +19,9 @@ class DocumentsController < ApplicationController
   end
 
   # GET /posts/:id and GET /pages/:id
-  def show; end
+  def show
+    @publishable = publishable_pull_request.present?
+  end
 
   # GET /posts/new and GET /pages/new
   def new
@@ -68,6 +70,22 @@ class DocumentsController < ApplicationController
     redirect_to index_url_for_kind, notice: "#{kind_label} was successfully deleted."
   end
 
+  def publish
+    pull_request = publishable_pull_request
+    unless pull_request
+      redirect_to show_url_for(@document), alert: "No draft changes for this #{kind_label.downcase} to publish."
+      return
+    end
+
+    result = service.merge_pull_request(pull_request[:id])
+    if result && result[:merged]
+      redirect_to show_url_for(@document), notice: "#{kind_label} was successfully published."
+    else
+      message = result&.[](:message).presence || 'The draft pull request could not be merged.'
+      redirect_to show_url_for(@document), alert: message
+    end
+  end
+
   private
 
   def set_kind
@@ -92,6 +110,10 @@ class DocumentsController < ApplicationController
 
   def service
     @service ||= GithubService.new(current_user.id)
+  end
+
+  def publishable_pull_request
+    service.pull_requests.find { |pull_request| pull_request[:files].include?(@document.path) }
   end
 
   def document_params
@@ -128,6 +150,8 @@ class DocumentsController < ApplicationController
     when 'update'
       flash.now[:alert] = "GitHub error: #{error.message}"
       render :edit, status: :unprocessable_entity
+    when 'publish'
+      redirect_to show_url_for(@document), alert: "GitHub error: #{error.message}"
     when 'index'
       @documents = []
       flash.now[:alert] = "GitHub error: #{error.message}"

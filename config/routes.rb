@@ -5,8 +5,12 @@ Rails.application.routes.draw do
     get :delete
     post :verified
   end
-  resources :posts, controller: 'documents', defaults: { kind: 'post' }, param: :id
-  resources :pages, controller: 'documents', defaults: { kind: 'page' }, param: :id
+  resources :posts, controller: 'documents', defaults: { kind: 'post' }, param: :id do
+    post :publish, on: :member
+  end
+  resources :pages, controller: 'documents', defaults: { kind: 'page' }, param: :id do
+    post :publish, on: :member
+  end
   resources :mpesas, only: %i[index create]
   devise_for :users, controllers: { omniauth_callbacks: 'users/omniauth_callbacks' }
   match :verified, to: 'homes#verified', via: :post

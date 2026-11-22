@@ -7,12 +7,16 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
 
   class FakeGithubService
-    attr_reader :writes, :deletes
+    attr_reader :writes, :deletes, :merges
+    attr_accessor :draft_pull_requests, :merge_result
 
     def initialize(files = [])
       @files = files
       @writes = []
       @deletes = []
+      @merges = []
+      @draft_pull_requests = [{ id: '123', files: [] }]
+      @merge_result = { merged: true }
     end
 
     def list(_kind)
@@ -34,6 +38,15 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     def delete(path)
       @deletes << path
     end
+
+    def pull_requests
+      draft_pull_requests
+    end
+
+    def merge_pull_request(id)
+      @merges << id
+      merge_result
+    end
   end
 
   setup do
@@ -47,6 +60,7 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
       content: "---\ntitle: Test Post\nlayout: post\n---\nHello\n"
     }
     @service = FakeGithubService.new([@file])
+    @service.draft_pull_requests.first[:files] = [@file[:path]]
   end
 
   test 'lists posts' do
@@ -75,7 +89,80 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select 'h1', 'Test Post'
+    assert_select 'form[action=?]', publish_post_path('2026-01-02-Test_Post')
     assert_includes response.body, 'Hello'
+  end
+
+  test 'renders a publish button for a page' do
+    page = @file.merge(
+      name: 'about.md',
+      path: '_pages/about.md',
+      content: "---\ntitle: About\nlayout: default\n---\nAbout us\n"
+    )
+    @service = FakeGithubService.new([page])
+    @service.draft_pull_requests.first[:files] = [page[:path]]
+
+    GithubService.stub(:new, @service) do
+      get page_url('about')
+    end
+
+    assert_response :success
+    assert_select 'form[action=?]', publish_page_path('about')
+  end
+
+  test 'does not render a publish button when the post is not in the draft pull request' do
+    @service.draft_pull_requests.first[:files] = ['_posts/another-post.md']
+
+    GithubService.stub(:new, @service) do
+      get post_url('2026-01-02-Test_Post')
+    end
+
+    assert_response :success
+    assert_select 'form[action=?]', publish_post_path('2026-01-02-Test_Post'), count: 0
+  end
+
+  test 'publishes a post by merging its draft pull request' do
+    GithubService.stub(:new, @service) do
+      post publish_post_url('2026-01-02-Test_Post')
+    end
+
+    assert_redirected_to post_url('2026-01-02-Test_Post')
+    assert_equal ['123'], @service.merges
+    assert_equal 'Post was successfully published.', flash[:notice]
+  end
+
+  test 'does not merge when there are no draft pull requests' do
+    @service.draft_pull_requests = []
+
+    GithubService.stub(:new, @service) do
+      post publish_post_url('2026-01-02-Test_Post')
+    end
+
+    assert_redirected_to post_url('2026-01-02-Test_Post')
+    assert_empty @service.merges
+    assert_equal 'No draft changes for this post to publish.', flash[:alert]
+  end
+
+  test 'does not merge an unrelated draft pull request' do
+    @service.draft_pull_requests.first[:files] = ['_posts/another-post.md']
+
+    GithubService.stub(:new, @service) do
+      post publish_post_url('2026-01-02-Test_Post')
+    end
+
+    assert_redirected_to post_url('2026-01-02-Test_Post')
+    assert_empty @service.merges
+  end
+
+  test 'reports when GitHub refuses to merge the draft pull request' do
+    @service.merge_result = { merged: false, message: 'Branch protection requires a review.' }
+
+    GithubService.stub(:new, @service) do
+      post publish_post_url('2026-01-02-Test_Post')
+    end
+
+    assert_redirected_to post_url('2026-01-02-Test_Post')
+    assert_equal 'Branch protection requires a review.', flash[:alert]
   end
 
   test 'renders the new post form' do
