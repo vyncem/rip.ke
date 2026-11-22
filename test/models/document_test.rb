@@ -35,13 +35,13 @@ class DocumentTest < ActiveSupport::TestCase
   test 'generates a jekyll post filename' do
     document = Document.new(kind: 'post', title: 'A New Post', date: '2026-02-03')
 
-    assert_equal '_posts/2026-02-03-a-new-post.md', document.generated_path
+    assert_equal 'articles/2026-02-03-a-new-post.md', document.generated_path
   end
 
   test 'generates a page filename and keeps the permalink' do
     document = Document.new(kind: 'page', title: 'About Us', layout: 'default', permalink: '/about', body: 'Hello')
 
-    assert_equal '_pages/about-us.md', document.generated_path
+    assert_equal './about-us.md', document.generated_path
     assert_includes document.to_content, 'permalink: "/about"'
   end
 

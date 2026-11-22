@@ -39,7 +39,7 @@ class HomesControllerTest < ActionDispatch::IntegrationTest
     assert_select 'a', text: 'New notice', count: 0
   end
 
-  test 'lists open pull requests from other users' do
+  test 'lists open publishings from other users' do
     service = FakeGithubService.new
     service.open_pull_requests = [{
       id: '42',
@@ -89,7 +89,7 @@ class HomesControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'Pull request was successfully published.', flash[:notice]
   end
 
-  test 'does not allow non-publishers to publish pull requests' do
+  test 'does not allow non-publishers to publish publishings' do
     service = FakeGithubService.new
 
     GithubService.stub(:new, service) do
@@ -98,7 +98,7 @@ class HomesControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to homes_url
     assert_empty service.merges
-    assert_equal 'You are not allowed to publish pull requests.', flash[:alert]
+    assert_equal 'You are not allowed to publish.', flash[:alert]
   end
 
   test 'does not expose the notice CRUD routes' do

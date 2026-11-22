@@ -38,7 +38,7 @@ class HomesController < ApplicationController
 
   def publish
     unless PUBLISHER_EMAILS.include?(current_user.email)
-      redirect_to homes_url, alert: 'You are not allowed to publish pull requests.'
+      redirect_to homes_url, alert: 'You are not allowed to publish.'
       return
     end
 

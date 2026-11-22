@@ -126,7 +126,7 @@ class GithubServiceTest < ActiveSupport::TestCase
     end
   end
 
-  test 'lists all open pull requests regardless of branch owner' do
+  test 'lists all open publishings regardless of branch owner' do
     pull_request = {
       url: 'https://api.github.com/repos/rip-coke/rip/pulls/42',
       title: 'A draft from another user',

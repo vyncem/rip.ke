@@ -173,7 +173,7 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'Post was successfully published.', flash[:notice]
   end
 
-  test 'does not merge when there are no draft pull requests' do
+  test 'does not merge when there are no draft publishings' do
     @service.draft_pull_requests = []
 
     GithubService.stub(:new, @service) do
@@ -226,7 +226,7 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to post_url('2026-02-03-another-post')
     assert_equal 1, @service.writes.size
     path, content = @service.writes.first
-    assert_equal '_posts/2026-02-03-another-post.md', path
+    assert_equal 'articles/2026-02-03-another-post.md', path
     assert_includes content, 'title: Another Post'
     assert_includes content, 'Body text'
   end

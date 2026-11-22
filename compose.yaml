@@ -12,6 +12,10 @@ services:
       - GOOGLE_CLIENT_ID
       - GOOGLE_CLIENT_SECRET
       - SECRET_KEY_BASE
+      - POSTS_FOLDER
+      - PAGES_FOLDER
+      - BASE_BRANCH
+      - GITHUB_REPO
     env_file: ".env"
     ports:
       - "3000:3000"
