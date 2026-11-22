@@ -5,6 +5,7 @@ require 'minitest/mock'
 
 class GithubServiceTest < ActiveSupport::TestCase
   FileInfo = Struct.new(:name, :path, :sha, :size, :html_url, :type, :content, :encoding, keyword_init: true)
+  PullRequestFile = Struct.new(:filename, :patch)
 
   class FakeClient
     attr_reader :calls
@@ -35,6 +36,11 @@ class GithubServiceTest < ActiveSupport::TestCase
       @calls << [:delete_contents, args]
       :deleted
     end
+
+    def merge_pull_request(*args)
+      @calls << [:merge_pull_request, args]
+      :merged
+    end
   end
 
   setup do
@@ -50,7 +56,7 @@ class GithubServiceTest < ActiveSupport::TestCase
 
     assert_equal :created, result
     call = @client.calls.find { |name, _| name == :create_contents }
-    assert_equal ['rip-coke/rip', '_posts/2026-01-01-test.md', 'Add _posts/2026-01-01-test.md', 'content',
+    assert_equal [GithubService::REPO, '_posts/2026-01-01-test.md', 'Add _posts/2026-01-01-test.md', 'content',
                   { branch: 'user_draft' }], call.last
   end
 
@@ -78,7 +84,7 @@ class GithubServiceTest < ActiveSupport::TestCase
 
     assert_equal :deleted, result
     call = @client.calls.find { |name, _| name == :delete_contents }
-    assert_equal ['rip-coke/rip', '_posts/2026-01-01-test.md', 'Delete _posts/2026-01-01-test.md', 'abc',
+    assert_equal [GithubService::REPO, '_posts/2026-01-01-test.md', 'Delete _posts/2026-01-01-test.md', 'abc',
                   { branch: 'user_draft' }], call.last
   end
 
@@ -117,6 +123,48 @@ class GithubServiceTest < ActiveSupport::TestCase
       page = @service.find(:page, 'about')
       assert_equal '_pages/about.html', page[:path]
       assert_equal "---\nlayout: default\n---\nBody", page[:content]
+    end
+  end
+
+  test 'lists all open pull requests regardless of branch owner' do
+    pull_request = {
+      url: 'https://api.github.com/repos/rip-coke/rip/pulls/42',
+      title: 'A draft from another user',
+      head: { ref: 'another-user_draft' }
+    }
+    @client.define_singleton_method(:pull_requests) do |repo, options|
+      @calls << [:pull_requests, repo, options]
+      [pull_request]
+    end
+    @client.define_singleton_method(:pull_request_files) do |_repo, number|
+      @calls << [:pull_request_files, number]
+      [PullRequestFile.new('_posts/draft.md', '+++')]
+    end
+
+    result = @service.open_pull_requests
+
+    assert_equal '42', result.first[:id]
+    assert_equal 'A draft from another user', result.first[:title]
+    assert_equal 'another-user_draft', result.first[:branch]
+    assert_equal ['_posts/draft.md'], result.first[:files]
+    assert_includes @client.calls, [:pull_requests, GithubService::REPO, { state: 'open' }]
+  end
+
+  test 'publishes the requested pull request' do
+    result = @service.publish_pull_request('42')
+
+    assert_equal :merged, result
+    assert_equal [GithubService::REPO, '42', 'Publish pull request #42'],
+                 @client.calls.find { |call| call.first == :merge_pull_request }.last
+  end
+
+  test 'only includes files from the signed-in user branch as publishable' do
+    own_pull_request = { branch: 'user_draft', files: ['_posts/own.md'] }
+
+    @service.stub(:user_pull_requests, [own_pull_request]) do
+      assert_equal ['_posts/own.md'], @service.publishable_paths
+      assert_equal own_pull_request, @service.pull_request_for_path('_posts/own.md')
+      assert_nil @service.pull_request_for_path('_posts/other.md')
     end
   end
 end

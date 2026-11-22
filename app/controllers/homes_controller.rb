@@ -1,29 +1,18 @@
 # frozen_string_literal: true
 
-class HomesController < ApplicationController # rubocop:disable Metrics/ClassLength
-  skip_before_action :authenticate_user!, only: %i[verified upload]
-  skip_before_action :verify_authenticity_token, only: %i[verified upload]
+class HomesController < ApplicationController
+  PUBLISHER_EMAILS = %w[oliviamuia09@gmail.com vyncem@gmail.com].freeze
 
-  before_action :set_home, only: %i[show edit update destroy]
+  skip_before_action :authenticate_user!, only: :verified
+  skip_before_action :verify_authenticity_token, only: :verified
 
-  # GET /homes or /homes.json
+  # GET /homes
   def index
-    @pull_requests = ghs.pull_requests
+    @pull_requests = ghs.open_pull_requests
     @payee = '254'
     # @payee = ENV.fetch('DARAJA_PAYER', nil)
     @reply = params[:reply]
   end
-
-  # GET /homes/1 or /homes/1.json
-  def show; end
-
-  # GET /homes/new
-  def new
-    @home = Home.new
-  end
-
-  # GET /homes/1/edit
-  def edit; end
 
   def check
     # if ['oliviamuia09@gmail.com', 'vyncem@gmail.com', 'nataliejeropbullut@gmail.com'].include?(current_user.email)
@@ -41,56 +30,24 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
     Rails.logger.info(params)
   end
 
-  def upload
-    phone = upload_params.delete(:phone)
-    county = upload_params.delete(:county)
-    user_name = upload_params.delete(:name)
-    attachment = upload_params.delete(:attachment)
-    attachment_1 = upload_params.delete(:attachment_1)
-    attachment_2 = upload_params.delete(:attachment_2)
-    attachment_3 = upload_params.delete(:attachment_3)
-    attachment_4 = upload_params.delete(:attachment_4)
-    dob = upload_params.delete(:dob)
-    dod = upload_params.delete(:dod)
-    name = upload_params.delete(:name_obit)
-    email = upload_params.delete(:email)
-    url = upload_params.delete(:url)
-    message = upload_params.delete(:message)
-    full_name = "#{dod}_#{dob}_#{name}".gsub('-', '_').gsub(' ', '_')
-    name_length = attachment.original_filename.split('.').length
-    image_name = "assets/images/#{full_name}.#{attachment.original_filename.split('.')[name_length-1]}"
-    ghs = GithubService.new("#{email}_#{Time.current.to_i}")
-
-    text=<<~TEXT
-      ---
-      name: #{name}
-      dob: #{dob}
-      dod: #{dod}
-      county: #{county}
-      pic: /#{image_name}
-      user: #{url}_#{user_name}_#{email}_#{phone}
-      layout: free_post
-      ---
-      <p class='py-2'>#{message.gsub(/\[.*?\]/, '').gsub("\n", "</\p><p class='py-2'>")}</p>
-    TEXT
-
-    res_img = attachment ? ghs.write(image_name, content_upload(attachment), 'base64')[:content][:html_url] : ''
-    res_img_1 = attachment_1 ? ghs.write("#{image_name}_1", content_upload(attachment_1), 'base64')[:content][:html_url] : ''
-    res_img_2 = attachment_2 ? ghs.write("#{image_name}_2", content_upload(attachment_2), 'base64')[:content][:html_url] : ''
-    res_img_3 = attachment_3 ? ghs.write("#{image_name}_3", content_upload(attachment_3), 'base64')[:content][:html_url] : ''
-    res_img_4 = attachment_4 ? ghs.write("#{image_name}_4", content_upload(attachment_4), 'base64')[:content][:html_url] : ''
-    res_txt = ghs.write("_notices/#{full_name}.md", text)[:content][:html_url]
-    res = [res_txt.split('/').last, res_img.split('/').last, res_img_1.split('/').last, res_img_2.split('/').last, res_img_3.split('/').last, res_img_4.split('/').last]
-    respond_to do |format|
-      format.html { render plain: "Notice was successfully created. #{res}" }
-      format.json { render json: res, status: :ok }
-    end
-  end
-
   def merge
     message = ghs.merge_pull_request(params[:home_id])
 
     redirect_to controller: :homes, action: :index, reply: message
+  end
+
+  def publish
+    unless PUBLISHER_EMAILS.include?(current_user.email)
+      redirect_to homes_url, alert: 'You are not allowed to publish pull requests.'
+      return
+    end
+
+    result = ghs.publish_pull_request(params[:home_id])
+    if result && result[:merged]
+      redirect_to homes_url, notice: 'Pull request was successfully published.'
+    else
+      redirect_to homes_url, alert: result&.[](:message).presence || 'The pull request could not be published.'
+    end
   end
 
   def delete
@@ -99,142 +56,9 @@ class HomesController < ApplicationController # rubocop:disable Metrics/ClassLen
     redirect_to homes_url, notice: message
   end
 
-  # POST /homes or /homes.json
-  def create
-    res = [res_txt, res_img]
-
-    respond_to do |format|
-      format.html { redirect_to homes_url, notice: "Notice was successfully created. #{res}" }
-    end
-  rescue StandardError => e
-    respond_to do |format|
-      format.html { redirect_to new_home_url, alert: e.message }
-    end
-  end
-
-  # PATCH/PUT /homes/1 or /homes/1.json
-  def update
-    respond_to do |format|
-      if @home.update(home_params)
-        format.html { redirect_to home_url(@home), notice: 'Notice was successfully updated.' }
-        format.json { render :show, status: :ok, location: @home }
-      else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @home.errors, status: :unprocessable_entity }
-      end
-    end
-  end
-
-  # DELETE /homes/1 or /homes/1.json
-  def destroy
-    @home.destroy!
-
-    respond_to do |format|
-      format.html { redirect_to homes_url, notice: 'Notice was successfully destroyed.' }
-      format.json { head :no_content }
-    end
-  end
-
   private
-
-  def res_img
-    ghs.write(image_name, content, 'base64')[:content][:html_url]
-  end
-
-  def content_upload(file)
-    image_file = Tempfile.new('foo', binmode: true)
-    image_file.write(file.read)
-    image_file.rewind
-    resize_file = MiniMagick::Image.open(image_file.path)
-    resize_file.resize '512x256!'
-    content = Base64.strict_encode64(resize_file.to_blob)
-    image_file.close
-    image_file.unlink
-    content
-  end
-
-  def content
-    image_file = Tempfile.new('foo', binmode: true)
-    image_file.write(file.download)
-    image_file.rewind
-    resize_file = MiniMagick::Image.open(image_file.path)
-    resize_file.resize '512x256!'
-    content = Base64.strict_encode64(resize_file.to_blob)
-    image_file.close
-    image_file.unlink
-    content
-  end
-
-  def image_name
-    "assets/images/#{full_name}.#{file[:filename].split('.')[1]}"
-  end
-
-  def body
-    home.content.body
-  end
-
-  def file
-    body.attachments.first.attachable
-  end
-
-  def res_txt
-    ghs.write("_notices/#{full_name}.md", text)[:content][:html_url]
-  end
-
-  def full_name
-    "#{dod}_#{dob}_#{name}".gsub('-', '_').gsub(' ', '_')
-  end
-
-  def name
-    home_params.delete(:name)
-  end
-
-  def dob
-    home_params.delete(:dob)
-  end
-
-  def dod
-    home_params.delete(:dod)
-  end
-
-  def county
-    home_params.delete(:county)
-  end
-
-  def home
-    Home.new(home_params.except(:name, :dod, :dob, :county))
-  end
-
-  def text
-    <<~TEXT
-      ---
-      name: #{name}
-      dob: #{dob}
-      dod: #{dod}
-      county: #{county}
-      pic: /#{image_name}
-      user: #{current_user.id}
-      layout: post
-      ---
-      <p class='py-2'>#{body.to_plain_text.gsub(/\[.*?\]/, '').gsub("\n", "</\p><p class='py-2'>")}</p>
-    TEXT
-  end
 
   def ghs
     @ghs ||= GithubService.new(current_user.id)
-  end
-
-  # Use callbacks to share common setup or constraints between actions.
-  def set_home
-    @home = Home.find(params[:id])
-  end
-
-  # Only allow a list of trusted parameters through.
-  def home_params
-    params.require(:home).permit(:content, :name, :dob, :dod, :county)
-  end
-
-  def upload_params
-    params.permit(:url, :name, :email, :phone, :message, :attachment, :attachment_1, :attachment_2, :attachment_3, :attachment_4, :dob, :dod, :name_obit, :county)
   end
 end

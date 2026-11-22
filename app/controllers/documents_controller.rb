@@ -14,6 +14,7 @@ class DocumentsController < ApplicationController
     @documents = service.list(@kind).map do |file|
       Document.new(kind: @kind, path: file[:path], sha: file[:sha], html_url: file[:html_url])
     end
+    @publishable_paths = service.publishable_paths
     @documents.sort_by! { |document| document.path.to_s }
     @documents.reverse! if @kind == 'post'
   end
@@ -77,7 +78,7 @@ class DocumentsController < ApplicationController
       return
     end
 
-    result = service.merge_pull_request(pull_request[:id])
+    result = service.publish_pull_request(pull_request[:id])
     if result && result[:merged]
       redirect_to show_url_for(@document), notice: "#{kind_label} was successfully published."
     else
@@ -113,7 +114,7 @@ class DocumentsController < ApplicationController
   end
 
   def publishable_pull_request
-    service.pull_requests.find { |pull_request| pull_request[:files].include?(@document.path) }
+    service.pull_request_for_path(@document.path)
   end
 
   def document_params

@@ -138,11 +138,33 @@ class GithubService
       end
     end
 
-    client.pull_requests(REPO).select { |pr| pr[:head][:ref] == user_branch }.map do |pull_request|
+    user_pull_requests
+  rescue Octokit::NotFound
+    []
+  end
+
+  def user_pull_requests
+    client.pull_requests(REPO, state: 'open').select { |pr| pr[:head][:ref] == user_branch }.map do |pull_request|
       pull_request_content(pull_request)
     end
   rescue Octokit::NotFound
     []
+  end
+
+  def open_pull_requests
+    client.pull_requests(REPO, state: 'open').map do |pull_request|
+      pull_request_content(pull_request)
+    end
+  rescue Octokit::NotFound
+    []
+  end
+
+  def publishable_paths
+    user_pull_requests.flat_map { |pull_request| pull_request[:files] }
+  end
+
+  def pull_request_for_path(path)
+    user_pull_requests.find { |pull_request| pull_request[:files].include?(path) }
   end
 
   def pull_request_content(pull_request)
@@ -153,6 +175,8 @@ class GithubService
     {
       id: pull_request_number,
       url: pull_request[:url],
+      title: pull_request[:title],
+      branch: pull_request[:head][:ref],
       files: pull_request_files.map(&:filename),
       text: pull_request_files.map(&:patch)
     }
@@ -166,6 +190,10 @@ class GithubService
     return if compare_ahead?
 
     client.merge_pull_request(REPO, pull_request_number, "#{BASE_BRANCH} < #{user_branch}")
+  end
+
+  def publish_pull_request(pull_request_number)
+    client.merge_pull_request(REPO, pull_request_number, "Publish pull request ##{pull_request_number}")
   end
 
   def compare_ahead?

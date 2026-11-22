@@ -16,7 +16,7 @@
     <p style="color: red" class="alert"><%= alert %></p>
     <% if user_signed_in? %>
       <nav class="flex flex-wrap items-center gap-4 px-4 py-2 text-sm font-medium">
-        <%= link_to "Notices", homes_path, class: "text-blue-700 hover:underline" %>
+        <%= link_to "Drafts", homes_path, class: "text-blue-700 hover:underline" %>
         <%= link_to "Posts", posts_path, class: "text-blue-700 hover:underline" %>
         <%= link_to "Pages", pages_path, class: "text-blue-700 hover:underline" %>
       </nav>

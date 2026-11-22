@@ -15,7 +15,7 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
       @writes = []
       @deletes = []
       @merges = []
-      @draft_pull_requests = [{ id: '123', files: [] }]
+      @draft_pull_requests = [{ id: '123', files: [], branch: 'user_draft' }]
       @merge_result = { merged: true }
     end
 
@@ -39,11 +39,26 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
       @deletes << path
     end
 
-    def pull_requests
+    def open_pull_requests
       draft_pull_requests
     end
 
-    def merge_pull_request(id)
+    def publishable_paths
+      draft_pull_requests.select { |pull_request| pull_request[:branch] == 'user_draft' }
+                         .flat_map { |pull_request| pull_request[:files] }
+    end
+
+    def pull_request_for_path(path)
+      draft_pull_requests.find do |pull_request|
+        pull_request[:branch] == 'user_draft' && pull_request[:files].include?(path)
+      end
+    end
+
+    def user_branch
+      'user_draft'
+    end
+
+    def publish_pull_request(id)
       @merges << id
       merge_result
     end
@@ -71,6 +86,31 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select 'h1', 'Posts'
     assert_select 'a', 'Test Post'
+    assert_select 'form[action=?]', publish_post_path('2026-01-02-Test_Post')
+  end
+
+  test 'lists pages with a publish button when included in the draft pull request' do
+    page = @file.merge(name: 'about.md', path: '_pages/about.md')
+    @service = FakeGithubService.new([page])
+    @service.draft_pull_requests.first[:files] = [page[:path]]
+
+    GithubService.stub(:new, @service) do
+      get pages_url
+    end
+
+    assert_response :success
+    assert_select 'form[action=?]', publish_page_path('about')
+  end
+
+  test 'does not show a publish button for a file in another user pull request' do
+    @service.draft_pull_requests.first[:branch] = 'another-user_draft'
+
+    GithubService.stub(:new, @service) do
+      get posts_url
+    end
+
+    assert_response :success
+    assert_select 'form[action=?]', publish_post_path('2026-01-02-Test_Post'), count: 0
   end
 
   test 'lists pages' do
@@ -89,6 +129,8 @@ class DocumentsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select 'h1', 'Test Post'
+    assert_select 'a[href^="https://github.com"]', count: 0
+    assert_select 'a', text: 'Open on GitHub', count: 0
     assert_select 'form[action=?]', publish_post_path('2026-01-02-Test_Post')
     assert_includes response.body, 'Hello'
   end
